@@ -1,0 +1,207 @@
+
+body {
+  background: #1e1f21;   /* xám xanh đậm */
+  color: #f7f7f7;        /* chữ xám nhạt */
+font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+letter-spacing: 0.1px;
+}
+
+/* Biến màu dùng thống nhất */
+:root {
+  --bg: #292a2d;
+  --bg-2: #2e3032;
+  --bg-3: #fcfdff;
+  --card: #2d3648;
+  --border: #475569;
+  --fg: #f1f5f9;
+  --muted: #94a3b8;
+  --brand: #7a7b6b;
+  --danger: #ef4444;
+  --ok: #22c55e;
+}
+
+/* Card thống nhất tone tối */
+.card,
+.metric-card,
+.dash-item,
+.hero {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+/* Input và textarea tối */
+input[type=text],
+input[type=password],
+textarea {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+input::placeholder {
+  color: var(--muted);
+}
+
+/* Code box */
+pre {
+  background: #0f172a !important;
+  border: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+
+/* Badge làm tối lại */
+.badge {
+  background: var(--bg-3);
+  color: var(--fg);
+}
+
+/* Muted text */
+.muted { color: var(--muted); }
+
+/* Button tối lại theo tone brand */
+.btn-primary {
+  background: var(--brand);
+  color: #062a28;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.btn-ghost:hover {
+  background: rgba(16,185,129,0.15);
+}
+
+/* Score dot sáng hơn */
+.score-0 { background:#dc2626 }
+.score-1 { background:#f97316 }
+.score-2 { background:#eab308 }
+.score-3 { background:#22c55e }
+.score-4 { background:#10b981 }
+
+/* Pwned badge */
+.pwn-danger {
+  background:#dc2626;
+}
+.pwn-ok {
+  background:#059669;
+}
+
+/* Icon button sáng hơn */
+.icon-btn {
+  color: var(--fg);
+}
+
+/* Tinh chỉnh Hero */
+.hero {
+  background: #2d2e2f;
+  border: none;        /* bỏ viền */
+  box-shadow: none;    /* nếu có shadow cũng tắt luôn */
+}
+/* ======================
+   🎯 RESULT DASHBOARD
+   ====================== */
+#metrics {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+/* Card kết quả */
+.metric-card {
+  background: var(--bg-2, #494b4f);
+  border: 1px solid var(--border, #ffffff);
+  border: none;
+  padding: 16px 18px;
+  color: var(--fg);
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  transition: .25s ease;
+}
+.metric-card:hover {
+  background: #1e1e1f;
+  transform: translateY(-3px);
+}
+
+/* Title và value */
+.metric-title {
+  font-size: .78rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+}
+.metric-value {
+  font-size: 1.28rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* Mô tả phụ (leak count, crack time...) */
+.metric-sub {
+  margin-top: 6px;
+  font-size: .86rem;
+  color: var(--muted);
+  line-height: 1.36rem;
+}
+
+/* Divider nhỏ giữa kết quả */
+.result-divider {
+  margin-top: 18px;
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+}
+/* ====================== */
+/* 🔹 Global Rounded UI */
+/* ====================== */
+
+/* Hero / Card / Metrics items */
+.hero,
+.card,
+.metric-card,
+.dash-item,
+#metrics > div {
+  border-radius: 14px !important;
+}
+
+/* Buttons */
+button,
+.btn,
+.btn-primary,
+.btn-ghost {
+  border-radius: 10px !important;
+}
+
+/* Input + Suggestions + Badges */
+input,
+textarea,
+.badge,
+.pwn-danger,
+.pwn-ok {
+  border-radius: 8px !important;
+}
+
+/* Tấm nền lớn */
+section,
+.container {
+  border-radius: 18px !important;
+}
+
+/* Tinh chỉnh fade + hover mượt hơn */
+.metric-card {
+  transition: all 0.28s ease;
+}
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.btn-primary {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--brand);
+  background: #3b4554 !important;
+  transition: .18s;
+}

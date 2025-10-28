@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Công cụ AI đánh giá mật khẩu</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js" integrity="sha512-+b0p2c1r4p6X2YQx6n6ZfQp0i8u3wG1uQpX9K8wq2lGm8e1wKf4H2y9Yc9m0Jc7Z2b1L3d4e5f6g7h8i9j0k==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <section class="hero">
+  <div class="hero-headline">
+    <h1>Công cụ kiểm tra mật khẩu sử dụng AI</h1>
+    <p class="subtitle">
+      Công cụ AI kiểm tra và đánh giá mức độ mạnh của mật khẩu. Có thể gợi ý tạo mật khẩu mạnh.
+      <strong class="danger">Tuyệt đối không đưa mật khẩu thật của bạn.</strong>
+    </p>
+  </div>
+
+  <form id="quickCheck" class="pw-form" onsubmit="return false;">
+    <label for="pw" class="pw-label">Hãy nhập mật khẩu để kiểm tra đánh giá</label>
+
+    <div class="pw-input">
+      <input type="password" id="pw" placeholder="Nhập mật khẩu demo..." autocomplete="off" />
+      <button type="button" class="icon-btn" id="togglePw" aria-label="Hiện/ẩn mật khẩu" title="Hiện/ẩn mật khẩu">
+        👁️
+      </button>
+      <button type="button" class="icon-btn" id="pastePw" aria-label="Dán từ clipboard" title="Dán từ clipboard">
+        📋
+      </button>
+    </div>
+
+    <div class="pw-actions">
+      <button type="button" id="checkBtn" class="btn btn-primary">Kiểm tra mật khẩu</button>
+      <button type="button" id="genBtn" class="btn btn-ghost">Tạo mật khẩu khó</button>
+    </div>
+
+    <div class="pw-hint">
+      Mẹo: không dùng mật khẩu thật; thử chuỗi như <code>abcabc123</code>, <code>Qwerty!23</code>, <code>Tr0ng!@2025</code>…
+    </div>
+  </form>
+</section>    
+<div id="result" style="margin-top:14px;display:none">
+     <!-- DASHBOARD: mỗi thuộc tính = 1 ô (card) -->
+    <div id="metrics" class="metrics-grid" style="display:none;"></div>
+</div>
+<script>
+  //Render Metrics
+  function renderMetrics(d){
+  const wrap = document.getElementById("metrics");
+  wrap.style.display = "grid";
+  wrap.innerHTML = ""; // clear cũ
+
+  const add = (title, value, subHtml="") => {
+    const card = document.createElement("div");
+    card.className = "metric-card";
+    card.innerHTML = `
+      <div class="metric-title">${title}</div>
+      <div class="metric-value">${value}</div>
+      ${subHtml ? `<div class="metric-sub">${subHtml}</div>` : ""}
+    `;
+    wrap.appendChild(card);
+  };
+
+// 1) Điểm
+add("Điểm (0–4)",
+  `<span class="metric-value"><span class="score-dot score-${d.score}"></span>${d.score}</span>`,
+  ["Rất yếu","Yếu","Vừa","Mạnh","Rất mạnh"][d.score] || "-"
+);
+
+
+  // 2) Số lần đoán
+  add("Số lần đoán ước tính", formatLarge(d.guesses || 0));
+
+  // 3) Rò rỉ (HIBP)
+  let pwnedVal = "";
+  if (d.pwned === null) {
+    pwnedVal = `<span class="muted">Không tra được</span>`;
+  } else if (d.pwned) {
+    pwnedVal = `<span class="pwn-badge pwn-danger">ĐÃ RÒ RỈ</span>`;
+  } else {
+    pwnedVal = `<span class="pwn-badge pwn-ok">CHƯA RÒ RỈ</span>`;
+  }
+let pwnedSub = (d.pwned && d.pwned_count)
+  ? `Số lần xuất hiện: ${formatLarge(d.pwned_count)}`
+  : "Không tìm thấy trong HIBP";
+add("Tình trạng rò rỉ (HIBP)", pwnedVal, pwnedSub);
+
+
+  // 4) Mức rủi ro AI
+  add("Mức rủi ro (AI)", d.risk_level || "Không xác định");
+
+  // 5) Kiểu tấn công có thể
+  add("Kiểu tấn công", d.attack_vector || "Không xác định");
+
+  // 6) Thời gian dò 
+  add("Thời gian giải mã",
+      `<div><strong>Bộ xử lý của điện thoại</strong>: ${d.crack_time?.mobile || "—"}</div>
+       <div><strong>GPU Máy Tính</strong>: ${d.crack_time?.desktop || "—"}</div>
+       <div><strong>Công nghệ đám mây tối tân</strong>: ${d.crack_time?.cloud || "—"}</div>`);
+
+  // 7) Thời gian dò (giây, số thô – cho phân tích)
+//Bỏ qua mục này để giao diện gọn hơn
+  // 8) Gợi ý
+const escapeHTML = (str) =>
+    String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const hasSug = Array.isArray(d.suggestions) && d.suggestions.length > 0;
+  const sugHtml = hasSug
+      ? d.suggestions.map(s => `• ${escapeHTML(s)}`).join("<br>")
+      : "Không có gợi ý thêm.";
+  const warnHtml = d.warning ? `<br><i>${escapeHTML(d.warning)}</i>` : "";
+
+  add("Gợi ý cải thiện", sugHtml + warnHtml);
+
+}
+
+// helpers
+async function sha1Hex(input) {
+  const enc = new TextEncoder();
+  const data = enc.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+
+function formatLarge(n){
+  if(n===Infinity) return '∞';
+  if(n<1000) return n.toFixed(0);
+  const units=['','K','M','B','T']; let u=0; while(n>=1000 && u<units.length-1){n/=1000;u++;}
+  return n.toFixed(2)+units[u];
+}
+
+function formatTime(seconds){
+  if(seconds===Infinity) return '∞';
+  const year = 60*60*24*365;
+  if(seconds>=year) return (seconds/year).toFixed(2)+' years';
+  if(seconds>=86400) return (seconds/86400).toFixed(2)+' days';
+  if(seconds>=3600) return (seconds/3600).toFixed(2)+' hours';
+  if(seconds>=60) return (seconds/60).toFixed(2)+' minutes';
+  return seconds.toFixed(2)+' seconds';
+}
+
+
+
+function estimateCrackTime(guesses, gps){
+  if(!isFinite(guesses) || guesses<=0) return Infinity;
+  return guesses / gps;
+}
+
+// main
+const pwInput = document.getElementById('pw');
+const checkBtn = document.getElementById('checkBtn');
+const genBtn = document.getElementById('genBtn');
+const resultDiv = document.getElementById('result');
+
+checkBtn.onclick = async () => {
+  const pw = pwInput.value || "";
+  if (!pw) {
+    alert("Nhập mật khẩu để kiểm tra (đừng dùng mật khẩu đang sử dụng!)");
+    return;
+  }
+
+  try {
+    const resp = await fetch("http://127.0.0.1:8000/api/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pw }),
+    });
+
+    const data = await resp.json();
+    console.log(data);
+
+    resultDiv.style.display = "block";
+// Dữ liệu từ API
+    const scoreValue = data.score;
+    const scoreRemain = 4 - scoreValue;
+    const secs = data.crack_time_seconds;
+    renderMetrics(data);
+  } catch (e) {
+    console.error(e);
+    alert("Không thể kết nối backend! Hãy kiểm tra FastAPI server có chạy chưa?");
+  }
+};
+
+
+// simple passphrase generator (tiny diceware-like list)
+const smallWordlist = ['correct','horse','battery','staple','sunset','river','mountain','coffee','tiger','apple','orange','river','cloud','spark','bottle','garden','silver','oak','stone','paper','keyboard','random','mango','planet','circle','thread','anchor','forest','window','lamp'];
+
+genBtn.onclick = ()=>{
+  const parts = [];
+  for(let i=0;i<4;i++) parts.push(smallWordlist[Math.floor(Math.random()*smallWordlist.length)]);
+  const pass = parts.join('-');
+  pwInput.value = pass;
+  checkBtn.click();
+}
+
+// Wordlist batch processing (client-side; small lists only)
+const checkListBtn = document.getElementById('checkListBtn');
+checkListBtn.onclick = async ()=>{
+  const raw = document.getElementById('wordlist').value.trim();
+  if(!raw){alert('Paste some passwords (small lists).');return}
+  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const outDiv = document.getElementById('wordlistResult');
+  outDiv.innerHTML = '<p class="muted">Processing '+lines.length+' items (client-side). Please wait...</p>';
+  const rows = [];
+  for(const pw of lines){
+    const z = zxcvbn(pw);
+    rows.push({ pw, score: z.score, guesses: z.guesses || 0, pwned: "-" });
+  }
+  // render table
+  let html = '<table style="width:100%;border-collapse:collapse">';
+  html += '<tr><th>Password</th><th>Score</th><th>Guesses(est)</th><th>Pwned</th></tr>';
+  for(const r of rows){
+    html += `<tr><td><code>${escapeHtml(r.pw)}</code></td><td>${r.score}</td><td>${formatLarge(r.guesses)}</td><td>${r.pwned}</td></tr>`;
+  }
+  html += '</table>';
+  outDiv.innerHTML = html;
+}
+
+function escapeHtml(str){return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+</script>
+</body>
+</html>
