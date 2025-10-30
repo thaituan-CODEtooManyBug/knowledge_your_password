@@ -1,32 +1,34 @@
 # main.py  — Password Analyzer API (VI localization)
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import hashlib, requests, math, logging
 from zxcvbn import zxcvbn
-
+from assets.week_password_get_API import router as weak_router
 app = FastAPI(title="Bộ phân tích mật khẩu (VI)")
-
 log = logging.getLogger("uvicorn.error")
-
+from fastapi.staticfiles import StaticFiles
 # Cho phép FE chạy ở 127.0.0.1:5500 (Live Server) — chỉnh origin khi deploy
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+import os
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
+    allow_origins=["*"],  # Cho phép tất cả origin để test
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Import và include router SAU khi add middleware
+from assets.week_password_get_API import router as weak_router
+app.include_router(weak_router)
 # ---------------------------
 # VIET LOCALIZATION MAPPINGS
 # ---------------------------
-risk_map = {
-    "High": "Cao",
-    "Medium": "Trung bình",
-    "Low": "Thấp",
-}
+
 
 vector_map = {
     "dictionary": "Dựa từ điển",
@@ -101,60 +103,63 @@ def fmt_time(seconds: float) -> str:
     if not math.isfinite(seconds) or seconds <= 0:
         return "∞"
     year, day, hour, minute = 31536000, 86400, 3600, 60
-    if seconds >= year:   return f"{seconds/year:.2f} năm"
-    if seconds >= day:    return f"{seconds/day:.2f} ngày"
-    if seconds >= hour:   return f"{seconds/hour:.2f} giờ"
-    if seconds >= minute: return f"{seconds/minute:.2f} phút"
-    return f"{seconds:.4f} giây"
+    if seconds >= year:   return f"{seconds/year:.2f} years"
+    if seconds >= day:    return f"{seconds/day:.2f} days"
+    if seconds >= hour:   return f"{seconds/hour:.2f} hours"
+    if seconds >= minute: return f"{seconds/minute:.2f} minutes"
+    return f"{seconds:.4f} seconds"
 
 @app.post("/api/check")
 def check_password(req: PasswordRequest):
     try:
         pw = (req.password or "").strip()
         if not pw:
-            raise HTTPException(400, "Vui lòng nhập mật khẩu để kiểm tra")
+            raise HTTPException(400, "Please provide a password. Highly recommended to not use your real password!")
 
         # Phân tích bằng zxcvbn
         z = zxcvbn(pw)
         guesses = float(z.get("guesses", max(1.0, 2 ** (len(pw) * 4))))
+        entropy = math.log2(guesses) if guesses > 0 else 0
+        score100 = max(0, min(100, int(round((entropy / 60) * 100))))
         mobile_s  = guesses / 1e3     # CPU điện thoại
         desktop_s = guesses / 1e7     # GPU máy tính
         cloud_s   = guesses / 1e10    # Cloud siêu mạnh
         hibp_count = hibp_check(pw)  # None nếu lookup lỗi
 
-        # Điểm & nhãn rủi ro (EN → VI)
-        score = int(z.get("score", 0))
-        risk_en = "High" if score <= 1 else ("Medium" if score == 2 else "Low")
-        risk_vi = risk_map.get(risk_en, "Không xác định")
+        # Đánh giá mức độ rủi ro theo score100 (thang 100)
+        if score100 <= 10:
+            risk_level = "Critical"
+        elif score100 <= 19:
+            risk_level = "High"
+        elif score100 <= 39:
+            risk_level = "Weak"
+        elif score100 <= 59:
+            risk_level = "Medium"
+        elif score100 <= 79:
+            risk_level = "Strong"
+        else:
+            risk_level = "Very Strong"
 
-        # Risk classification logic
-        score = z.get("score", 0)
-        entropy = z.get("entropy", 0)
         pw_len = len(pw)
-
-        # Default
-        risk_level = "Thấp (Tương đối an toàn)"
-        attack_vector = "Không xác định"
 
         # Nếu bị rò rỉ → HIGH risk bất kể điểm
         if hibp_count and hibp_count > 100:
-            risk_level = "Rất cao (Đã rò rỉ nhiều lần)"
-            attack_vector = "Rò rỉ dữ liệu"
+            risk_level = "Critical"
+            attack_vector = "Data leak"
         elif hibp_count and hibp_count > 0:
-            risk_level = "Cao (Đã bị rò rỉ)"
-            attack_vector = "Rò rỉ dữ liệu"
-        # Nếu score kém hoặc đoán được nhanh
-        elif score <= 1 or entropy < 30 or pw_len < 6:
-            risk_level = "Trung bình (Yếu)"
-            attack_vector = "Dễ đoán"
-        # Nếu có pattern lặp
+            risk_level = "High"
+            attack_vector = "Data leak"
+        elif score100 <= 19 or entropy < 30 or pw_len < 6:
+            risk_level = "Weak"
+            attack_vector = "Easily guessed"
         elif any(p * 3 in pw for p in set(pw)):
-            risk_level = "Cao (Lặp ký tự)"
-            attack_vector = "Lặp ký tự"
-        # Nếu quá ngắn
+            risk_level = "High"
+            attack_vector = "Repeated characters"
         elif pw_len < 8:
-            risk_level = "Trung bình (Ngắn)"
-            attack_vector = "Độ dài yếu"
+            risk_level = "Medium"
+            attack_vector = "Short length"
+        else:
+            attack_vector = "Unknown"
 
         # Trả về trong JSON
 
@@ -175,7 +180,7 @@ def check_password(req: PasswordRequest):
         warning_vi = suggestion_map.get(warning_en, warning_en)
 
         return {
-            "score": score,
+            "score": score100,  # Trả về điểm 0-100
             "guesses": guesses,
             "pwned": (None if hibp_count is None else hibp_count > 0),
             "pwned_count": hibp_count,
@@ -184,16 +189,12 @@ def check_password(req: PasswordRequest):
                 "desktop": fmt_time(guesses/1e7),
                 "cloud":   fmt_time(guesses/1e10),
             },
-             "crack_time_seconds": {            # <— thêm block này
-             "mobile":  mobile_s,
-             "desktop": desktop_s,
-             "cloud":   cloud_s
-    },
-            "risk_level": risk_vi,          # ← tiếng Việt
-            "attack_vector": vectors_vi,       # ← tiếng Việt
-            "suggestions": suggestions_vi,     # ← tiếng Việt
-            "warning": warning_vi,             # ← tiếng Việt
+            "risk_level": risk_level,
+            "attack_vector": attack_vector,
+            "suggestions": suggestions_en,
+            "warning": warning_en,
         }
+    
 
     except HTTPException:
         raise
