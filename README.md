@@ -31,24 +31,23 @@ Open file index.html in browser and enjoy
 Note: 
 This project I running at local, not saving any user's password
 
-
 ```mermaid
 flowchart LR
     %% Clients
-    U[User (Browser Desktop/Mobile)] -->|Enter password / Click button| FE
+    U["User (Browser - Desktop or Mobile)"] -->|"Enter password or click button"| FE
 
     %% Frontend
-    subgraph FE[Frontend (Static Web)]
+    subgraph FE[Frontend - Static Web]
       I[index.html]
-      M[main.js (Calls 3 APIs depending on UI)]
+      M[main.js (call APIs depending on UI)]
       ST[style.css / UI]
       I --> M
     end
 
     %% Backend
-    subgraph BE[Backend (FastAPI)]
-      MP[main.py (/api/check)]
-      GW[get_weak_100.py (/api/weak100, /api/weak100/randomlist)]
+    subgraph BE[Backend - FastAPI]
+      MP[main.py - /api/check]
+      GW[get_weak_100.py - /api/weak100 + /api/weak100/randomlist]
       LIB[zxcvbn library]
       DS[(weak_passwords dataset)]
       MP --> LIB
@@ -56,17 +55,17 @@ flowchart LR
     end
 
     %% Connections
-    U -->|HTTP GET/POST| I
-    M -->|fetch /api/check| MP
-    M -->|fetch /api/weak100| GW
-    M -->|fetch /api/weak100/randomlist| GW
+    U -->|"HTTP GET or POST"| I
+    M -->|"/api/check"| MP
+    M -->|"/api/weak100"| GW
+    M -->|"/api/weak100/randomlist"| GW
 
     %% Responses
-    MP -->|JSON {score, guesses, suggestions...}| M
-    GW -->|JSON top100 / randomlist| M
+    MP -->|"JSON: score, guesses, suggestions"| M
+    GW -->|"JSON: top100 / randomlist"| M
 
     %% Deployment
-    subgraph DEPLOY[Deployment (Render / Nginx + Uvicorn)]
+    subgraph DEPLOY[Deployment - Render / Nginx + Uvicorn]
       NG[Nginx (Static Hosting)]
       UV[Uvicorn (App Server)]
     end
