@@ -5,10 +5,10 @@ const API_CHECK  = (location.hostname.match(/localhost|127\.0\.0\.1/))
 
 const API_WEAK100  = (location.hostname.match(/localhost|127\.0\.0\.1/))
   ? "http://127.0.0.1:5583/api/weak100"
-  : `https://domain.com/api/weak100`;
+  : `https://fastapi-backend-yda2.onrender.com/api/weak100`;
 const API_WEAK100_RANDOMLIST  = (location.hostname.match(/localhost|127\.0\.0\.1/))
   ? "http://127.0.0.1:5583/api/weak100/randomlist"
-  : `https://domain.com/api/weak100/randomlist`;
+  : `https://fastapi-backend-yda2.onrender.com/api/weak100/randomlist`;
 const smallWordlist = [
   "@pplE", "C10ud", "r1vEr", "st0n3", "gr33n", "b1u3", "st@r", "m00n",
   "l1ght", "tr33", "w01f", "f0x", "l1On", "k1n8", "qu33n", "sUn",
