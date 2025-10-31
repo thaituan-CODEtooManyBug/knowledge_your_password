@@ -31,7 +31,7 @@ This project is built for learning, experimentation, and promoting better passwo
 ## 🏗️ System Architecture
 
 <p align="center">
-  <img src="system_structure.svg" alt="System Architecture" width="800"/>
+  <img src="system_diagram.svg" alt="System Architecture" width="800"/>
 </p>
 
 ---
