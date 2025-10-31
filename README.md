@@ -72,3 +72,4 @@ flowchart LR
 
     FE -.static files.-> NG
     BE -.runs on.-> UV
+```
