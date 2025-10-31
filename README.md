@@ -31,25 +31,24 @@ Open file index.html in browser and enjoy
 Note: 
 This project I running at local, not saving any user's password
 
-```mermaid
 flowchart LR
     %% Clients
     U["User (Browser - Desktop or Mobile)"] -->|"Enter password or click button"| FE
 
     %% Frontend
-    subgraph FE[Frontend - Static Web]
-      I[index.html]
-      M[main.js (call APIs depending on UI)]
-      ST[style.css / UI]
+    subgraph FE["Frontend - Static Web"]
+      I["index.html"]
+      M["main.js (call APIs depending on UI)"]
+      ST["style.css / UI"]
       I --> M
     end
 
     %% Backend
-    subgraph BE[Backend - FastAPI]
-      MP[main.py - /api/check]
-      GW[get_weak_100.py - /api/weak100 + /api/weak100/randomlist]
-      LIB[zxcvbn library]
-      DS[(weak_passwords dataset)]
+    subgraph BE["Backend - FastAPI"]
+      MP["main.py - /api/check"]
+      GW["get_weak_100.py - /api/weak100 + /api/weak100/randomlist"]
+      LIB["zxcvbn library"]
+      DS["(weak_passwords dataset)"]
       MP --> LIB
       GW --> DS
     end
@@ -65,11 +64,10 @@ flowchart LR
     GW -->|"JSON: top100 / randomlist"| M
 
     %% Deployment
-    subgraph DEPLOY[Deployment - Render / Nginx + Uvicorn]
-      NG[Nginx (Static Hosting)]
-      UV[Uvicorn (App Server)]
+    subgraph DEPLOY["Deployment - Render / Nginx + Uvicorn"]
+      NG["Nginx (Static Hosting)"]
+      UV["Uvicorn (App Server)"]
     end
 
-    FE -.static files.-> NG
-    BE -.runs on.-> UV
-```
+    FE -. static files .-> NG
+    BE -. runs on .-> UV
