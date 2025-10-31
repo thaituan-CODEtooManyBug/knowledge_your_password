@@ -221,7 +221,7 @@ textarea:focus {
   display:flex; flex-direction:column; gap:6px;
 }
 .rank{ font-weight:800; color:#f5c84b; }
-.pw{ color:#e6e6e6; font-weight:600; word-break:break-all; }
+.pw{ color:#e6e6e6; font-weight:600; word-break:break-all;}
 .count{ color:#9aa0a6; font-size:.85rem; }
 
 /* Gọn lại grid cho weak-list */
@@ -635,11 +635,11 @@ textarea:focus {
   overflow: hidden;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.00001); 
-  backdrop-filter: blur(12px) saturate(180%) contrast(1.0);
+  backdrop-filter: blur(4px) saturate(180%) contrast(1.8);
   -webkit-backdrop-filter: blur(10px) saturate(180%) contrast(1.15);
   box-shadow: 0 8px 32px rgba(62, 61, 61, 0); 
   top: 0;
-  z-index: 1000;
+  z-index: 1;
   transition: box-shadow 0.3s ease, background 0.3s ease;
 }
 .hero-headline h1 {
@@ -754,7 +754,7 @@ textarea:focus {
 .pw-input {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
   display: flex;
   align-items: center;
   margin: 0 auto;
@@ -975,14 +975,14 @@ button,
   font-weight: 600;
 }
 .dashboard-section {
-
-  padding-bottom: 0;
-  border-bottom: none;
-  background: rgba(255,255,255,0.04);
-  border-radius: 18px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-  padding: 28px 18px 18px 18px;
-  margin-bottom: 44px;
+  padding: 18px 10px 12px 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 .dashboard-section:not(:last-child) {
   border-bottom: 1.5px solid rgba(255,255,255,0.08);
@@ -993,7 +993,7 @@ button,
   transition: box-shadow 0.2s, background 0.2s;
 }
 .section-title {
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: 700;
   color: #38bdf8;
   margin-bottom: 10px;
@@ -1026,10 +1026,7 @@ button,
 .toggle-result-btn[aria-expanded="false"] #toggleResultIcon {
   transform: rotate(-90deg);
 }
-#result {
-  max-width: 540px;
-  margin: 0 auto;
-}
+
 .dashboard-section1 {
   position: relative;
   left: 50%;
@@ -1124,10 +1121,10 @@ button,
   margin: 0 0 32px 0;
   padding: 0;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.00001); 
-  backdrop-filter: blur(12px) saturate(180%) contrast(1.0);
-  -webkit-backdrop-filter: blur(10px) saturate(180%) contrast(1.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.00001); /* thêm chiều sâu tự nhiên */
+  background: rgba(255, 255, 255, 0.08); /* tăng opacity nền trắng mờ */
+  backdrop-filter: blur(5px) saturate(200%) brightness(1.1) contrast(1); /* tăng blur, sáng và tương phản */
+  -webkit-backdrop-filter: blur(18px) saturate(200%) brightness(1.25) contrast(1.2);
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.25), 0 2px 16px rgba(0,0,0,0.18); /* tăng bóng */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1137,13 +1134,51 @@ button,
   height: 74px;
   min-height: 56px;
   transition: box-shadow 0.3s ease, background 0.3s ease;
-
-
+  overflow: hidden;
+}
+.main-nav-glass::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 38%;
+  pointer-events: none;
+  /* Gradient alpha: giữa trong, rìa mờ */
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.04) 40%,
+    rgba(255,255,255,0.04) 60%,
+    rgba(255,255,255,0.22) 100%
+  );
+  filter: blur(28px) contrast(1.2) saturate(1.2);
+  opacity: 0.95;
+  z-index: 2;
+  /* Tùy chỉnh border-radius để méo hơn ở rìa */
+  border-bottom-left-radius: 80px 120px;
+  border-bottom-right-radius: 80px 120px;
 }
 
-.main-nav-glass::before,
 .main-nav-glass::after {
-  display: none !important;
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 0.7%;
+  width: 88%;
+  height: 25%;
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    rgb(255, 255, 255) 0%,   /* tăng sáng ở đầu */
+    rgba(255, 255, 255, 0.379) 60%,
+    rgba(255, 255, 255, 0.263) 85%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  border-radius: 60px 60px 120px 120px / 40px 40px 80px 80px;
+  filter: blur(9px);
+  opacity: 0.7; /* tăng độ rõ */
+  z-index: 0;
 }
 
 /* From Uiverse.io by moraxh */ 
@@ -1481,3 +1516,67 @@ button,
   min-height: 56px;
   transition: box-shadow 0.3s ease, background 0.3s ease;
 */
+/* Dashboard grid layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+.dashboard-section1 {
+  /* Xóa các thuộc tính width: 100vw, left: 50%, ... */
+  position: static;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 28px 18px 18px 18px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pw-actions .btn {
+  padding: 12px 20px;
+  min-width: 180px;
+  border-radius: 12px;
+}
+.info-tooltip {
+  display: inline-block;
+  margin-left: 6px;
+  background: #3b82f6;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  line-height: 18px;
+  transition: background 0.2s;
+}
+.info-tooltip:hover {
+  background: #2563eb;
+}
+
+/* Tooltip custom */
+.info-tooltip[data-tooltip]:hover:after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: 120%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  white-space: pre-line;
+  font-size: 0.95rem;
+  z-index: 10;
+  min-width: 180px;
+  max-width: 320px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+}
