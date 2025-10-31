@@ -31,4 +31,6 @@ Open file index.html in browser and enjoy
 Note: 
 This project I running at local, not saving any user's password
 
-![System Architecture](./system_structure.svg)
+<p align="center">
+  <img src="system_structure.svg" alt="System Architecture" width="800"/>
+</p>
