@@ -30,3 +30,48 @@ Open file index.html in browser and enjoy
 
 Note: 
 This project I running at local, not saving any user's password
+
+
+```mermaid
+flowchart LR
+    %% Clients
+    U[Người dùng trình duyệt\n(Desktop/Mobile)] -->|Nhập mật khẩu / Nhấn nút| FE
+
+    %% Frontend
+    subgraph FE[Frontend (Static Web)]
+      I[index.html]
+      M[main.js\n(Gọi 3 API tuỳ hành vi UI)]
+      ST[style.css / UI]
+      I --> M
+    end
+
+    %% Backend
+    subgraph BE[Backend (FastAPI)]
+      MP[main.py\n/api/check]
+      GW[get_weak_100.py\n/api/weak100\n/api/weak100/randomlist]
+      LIB[zxcvbn\n(Thư viện chấm điểm)]
+      DS[(weak_passwords dataset\nCSV/JSON/txt/cache)]
+      MP --> LIB
+      GW --> DS
+    end
+
+    %% Edges
+    U -->|HTTP GET/POST| I
+    M -- fetch /api/check --> MP
+    M -- fetch /api/weak100 --> GW
+    M -- fetch /api/weak100/randomlist --> GW
+
+    %% Responses
+    MP -->|JSON: {score, guesses,\ncrack_time, pwned, suggestions...}| M
+    GW -->|JSON: Top 100 yếu| M
+    GW -->|JSON: 100 yếu ngẫu nhiên| M
+
+    %% Optional deploy
+    subgraph DEPLOY[Triển khai (tuỳ chọn)]
+      NG[Nginx/Static host\nphục vụ FE]
+      UV[Uvicorn/Gunicorn\nchạy FastAPI]
+    end
+
+    FE -. static files .-> NG
+    BE -. app server .-> UV
+```
