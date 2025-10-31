@@ -1,7 +1,7 @@
 // Đặt chung một nơi để đổi cho dễ
 const API_CHECK  = (location.hostname.match(/localhost|127\.0\.0\.1/))
   ? "http://127.0.0.1:5583/api/check"
-  : `https://domain.com/api/check`;
+  : `https://fastapi-backend-yda2.onrender.com/api/check`;
 
 const API_WEAK100  = (location.hostname.match(/localhost|127\.0\.0\.1/))
   ? "http://127.0.0.1:5583/api/weak100"
